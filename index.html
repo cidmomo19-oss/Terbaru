@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Secure Gateway</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f0f7ff;
+            --accent-blue: #3b82f6;
+            --glow-blue: rgba(59, 130, 246, 0.5);
+            --text-main: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Efek Cahaya Biru di Background */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, var(--glow-blue) 0%, rgba(255,255,255,0) 70%);
+            top: -150px; right: -150px; z-index: -1; opacity: 0.5;
+        }
+        body::after {
+            content: "";
+            position: absolute;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, var(--glow-blue) 0%, rgba(255,255,255,0) 70%);
+            bottom: -100px; left: -100px; z-index: -1; opacity: 0.4;
+        }
+
+        .main-wrapper {
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        /* TOMBOL FLOATING DENGAN CAHAYA */
+        .link-grid {
+            display: grid;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .secure-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 18px 25px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: var(--text-main);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .secure-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Efek Kilatan Cahaya saat Hover */
+        .secure-btn::after {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transition: 0.5s;
+        }
+        .secure-btn:hover::after {
+            left: 100%;
+        }
+
+        .btn-text { font-weight: 700; font-size: 1.1rem; }
+        
+        .btn-icon-box {
+            width: 35px; height: 35px;
+            background: #eff6ff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-blue);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+        }
+
+        /* ADMIN CARD */
+        .admin-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid #fff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <!-- === ADMIN VIEW === -->
+        <div id="admin-view" style="display: none;">
+            <div class="admin-card">
+                <h4 class="fw-bold mb-4 text-center">Link Builder</h4>
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted">JUDUL HALAMAN</label>
+                    <input type="text" id="page-title" class="form-control" placeholder="Contoh: Mediafire Premium">
+                </div>
+                <div id="link-inputs"></div>
+                <button class="btn btn-outline-primary w-100 border-dashed mt-2 mb-4" onclick="addLinkRow()">+ Tambah Link</button>
+                <button class="btn btn-primary w-100 py-3 fw-bold shadow-lg" style="border-radius:12px" onclick="generateUrl()">GENERATE & ENCRYPT</button>
+            </div>
+            
+            <div id="result-area" class="mt-4 p-3 bg-white rounded-4 border shadow-sm" style="display:none">
+                <p class="small fw-bold text-primary mb-2">URL Gateway Anda:</p>
+                <div class="input-group">
+                    <input type="text" id="final-url" class="form-control bg-light" readonly>
+                    <button class="btn btn-primary" onclick="copyUrl()">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === USER VIEW === -->
+        <div id="user-view" style="display: none;">
+            <div class="text-center mb-5">
+                <h1 id="display-title" class="page-title">...</h1>
+                <p class="text-muted small fw-medium">Pilih file untuk mulai ngoc0k</p>
+            </div>
+
+            <div id="link-list" class="link-grid">
+                <!-- Tombol muncul di sini -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const ADS = [
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
+            "https://omg10.com/4/10608604"
+        ];
+        const SECRET_KEY = "kunci-rahasia-iq-tinggi";
+        const MEMORY_KEY = "sg_data_store";
+        const EXPIRY_TIME = 60 * 60 * 1000; // 1 Jam
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const params = new URLSearchParams(window.location.search);
+            const rawData = params.get('data');
+
+            if (rawData) {
+                try {
+                    const dec = CryptoJS.AES.decrypt(decodeURIComponent(rawData), SECRET_KEY).toString(CryptoJS.enc.Utf8);
+                    const parsed = JSON.parse(dec);
+                    
+                    // Simpan ke Memory & Bersihkan URL
+                    localStorage.setItem(MEMORY_KEY, JSON.stringify({ payload: parsed, ts: Date.now() }));
+                    window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+                    
+                    renderUserView(parsed);
+                } catch (e) { alert("Key Salah!"); }
+            } else {
+                const cached = getFromMemory();
+                if (cached) {
+                    renderUserView(cached);
+                } else {
+                    document.getElementById('admin-view').style.display = 'block';
+                    addLinkRow();
+                }
+            }
+        });
+
+        function getFromMemory() {
+            const raw = localStorage.getItem(MEMORY_KEY);
+            if (!raw) return null;
+            const obj = JSON.parse(raw);
+            if (Date.now() - obj.ts > EXPIRY_TIME) {
+                localStorage.removeItem(MEMORY_KEY);
+                return null;
+            }
+            return obj.payload;
+        }
+
+        function renderUserView(data) {
+            document.getElementById('user-view').style.display = 'block';
+            document.getElementById('display-title').innerText = data.title;
+            const container = document.getElementById('link-list');
+            
+            data.links.forEach((item) => {
+                const btn = document.createElement('div');
+                btn.className = 'secure-btn';
+                btn.innerHTML = `
+                    <span class="btn-text">${item.t}</span>
+                    <div class="btn-icon-box"><i class="bi bi-chevron-right"></i></div>
+                `;
+                btn.onclick = () => {
+                    let idx = parseInt(localStorage.getItem('ad_seq') || "0");
+                    const targetAd = ADS[idx];
+                    localStorage.setItem('ad_seq', (idx + 1) % ADS.length);
+
+                    window.open(item.u, '_blank');
+                    window.location.href = targetAd;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function addLinkRow() {
+            const d = document.createElement('div');
+            d.className = 'd-flex gap-2 mb-2';
+            d.innerHTML = `<input type="text" class="form-control t-in" placeholder="Nama Link"><input type="text" class="form-control u-in" placeholder="URL"><button class="btn btn-light border" onclick="this.parentElement.remove()">X</button>`;
+            document.getElementById('link-inputs').appendChild(d);
+        }
+
+        function generateUrl() {
+            const title = document.getElementById('page-title').value;
+            const rows = document.querySelectorAll('#link-inputs .d-flex');
+            let links = [];
+            rows.forEach(r => {
+                const t = r.querySelector('.t-in').value;
+                const u = r.querySelector('.u-in').value;
+                if(t && u) links.push({t, u});
+            });
+            if(!title || links.length === 0) return alert("Isi data dulu!");
+
+            const enc = CryptoJS.AES.encrypt(JSON.stringify({title, links}), SECRET_KEY).toString();
+            document.getElementById('final-url').value = window.location.origin + window.location.pathname + "?data=" + encodeURIComponent(enc);
+            document.getElementById('result-area').style.display = 'block';
+        }
+
+        function copyUrl() {
+            const el = document.getElementById('final-url'); el.select();
+            document.execCommand('copy'); alert('Link disalin!');
+        }
+    </script>
+</body>
+</html>
