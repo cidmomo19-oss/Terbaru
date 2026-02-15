@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
     <title>Secure Gateway</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -25,9 +25,9 @@
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
+            touch-action: pan-x pan-y;
         }
 
-        /* Efek Cahaya Biru di Background */
         body::before {
             content: "";
             position: absolute;
@@ -59,7 +59,6 @@
             margin-bottom: 5px;
         }
 
-        /* TOMBOL FLOATING DENGAN CAHAYA */
         .link-grid {
             display: grid;
             gap: 15px;
@@ -75,30 +74,38 @@
             padding: 18px 25px;
             border-radius: 16px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Dipercepat dikit transisinya */
             text-decoration: none;
             color: var(--text-main);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             position: relative;
             overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* EFEK SAAT DITEKAN (ACTIVE) */
+        .secure-btn:active {
+            transform: scale(0.95); /* Mengecil dikit pas diklik */
+            background-color: #f8faff;
         }
 
         .secure-btn:hover {
-            transform: translateY(-3px);
             border-color: var(--accent-blue);
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
         }
 
-        /* Efek Kilatan Cahaya saat Hover */
         .secure-btn::after {
             content: "";
             position: absolute;
             top: 0; left: -100%;
             width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            transition: 0.5s;
+            transition: 0.4s;
         }
-        .secure-btn:hover::after {
+        
+        /* Kilatan muncul saat tombol aktif/diklik */
+        .secure-btn:active::after {
             left: 100%;
         }
 
@@ -112,10 +119,8 @@
             align-items: center;
             justify-content: center;
             color: var(--accent-blue);
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
         }
 
-        /* ADMIN CARD */
         .admin-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
@@ -130,17 +135,11 @@
             padding: 12px;
             border: 1px solid #e2e8f0;
         }
-        .form-control:focus {
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            border-color: var(--accent-blue);
-        }
     </style>
 </head>
 <body>
 
     <div class="main-wrapper">
-        
-        <!-- === ADMIN VIEW === -->
         <div id="admin-view" style="display: none;">
             <div class="admin-card">
                 <h4 class="fw-bold mb-4 text-center">Link Builder</h4>
@@ -150,7 +149,7 @@
                 </div>
                 <div id="link-inputs"></div>
                 <button class="btn btn-outline-primary w-100 border-dashed mt-2 mb-4" onclick="addLinkRow()">+ Tambah Link</button>
-                <button class="btn btn-primary w-100 py-3 fw-bold shadow-lg" style="border-radius:12px" onclick="generateUrl()">GENERATE & ENCRYPT</button>
+                <button class="btn btn-primary w-100 py-3 fw-bold" onclick="generateUrl()">GENERATE & ENCRYPT</button>
             </div>
             
             <div id="result-area" class="mt-4 p-3 bg-white rounded-4 border shadow-sm" style="display:none">
@@ -162,18 +161,13 @@
             </div>
         </div>
 
-        <!-- === USER VIEW === -->
         <div id="user-view" style="display: none;">
             <div class="text-center mb-5">
                 <h1 id="display-title" class="page-title">...</h1>
                 <p class="text-muted small fw-medium">Pilih file untuk mulai ngoc0k</p>
             </div>
-
-            <div id="link-list" class="link-grid">
-                <!-- Tombol muncul di sini -->
-            </div>
+            <div id="link-list" class="link-grid"></div>
         </div>
-
     </div>
 
     <script>
@@ -183,7 +177,7 @@
         ];
         const SECRET_KEY = "kunci-rahasia-iq-tinggi";
         const MEMORY_KEY = "sg_data_store";
-        const EXPIRY_TIME = 60 * 60 * 1000; // 1 Jam
+        const EXPIRY_TIME = 60 * 60 * 1000;
 
         document.addEventListener("DOMContentLoaded", () => {
             const params = new URLSearchParams(window.location.search);
@@ -193,11 +187,8 @@
                 try {
                     const dec = CryptoJS.AES.decrypt(decodeURIComponent(rawData), SECRET_KEY).toString(CryptoJS.enc.Utf8);
                     const parsed = JSON.parse(dec);
-                    
-                    // Simpan ke Memory & Bersihkan URL
                     localStorage.setItem(MEMORY_KEY, JSON.stringify({ payload: parsed, ts: Date.now() }));
                     window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
-                    
                     renderUserView(parsed);
                 } catch (e) { alert("Key Salah!"); }
             } else {
@@ -234,13 +225,18 @@
                     <span class="btn-text">${item.t}</span>
                     <div class="btn-icon-box"><i class="bi bi-chevron-right"></i></div>
                 `;
+                
+                // DISINI PERBAIKANNYA (Pake Jeda)
                 btn.onclick = () => {
                     let idx = parseInt(localStorage.getItem('ad_seq') || "0");
                     const targetAd = ADS[idx];
                     localStorage.setItem('ad_seq', (idx + 1) % ADS.length);
 
-                    window.open(item.u, '_blank');
-                    window.location.href = targetAd;
+                    // Kasih jeda 300ms supaya animasi klik kelihatan dulu
+                    setTimeout(() => {
+                        window.open(item.u, '_blank');
+                        window.location.href = targetAd;
+                    }, 300);
                 };
                 container.appendChild(btn);
             });
