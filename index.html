@@ -11,6 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
     <style>
+        /* STYLE AWAL YANG ABANG SUKA */
         :root {
             --bg-color: #f0f7ff;
             --accent-blue: #3b82f6;
@@ -74,7 +75,7 @@
             padding: 18px 25px;
             border-radius: 16px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Dipercepat dikit transisinya */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             color: var(--text-main);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -84,29 +85,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* EFEK SAAT DITEKAN (ACTIVE) */
         .secure-btn:active {
-            transform: scale(0.95); /* Mengecil dikit pas diklik */
+            transform: scale(0.95);
             background-color: #f8faff;
         }
 
         .secure-btn:hover {
             border-color: var(--accent-blue);
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
-        }
-
-        .secure-btn::after {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            transition: 0.4s;
-        }
-        
-        /* Kilatan muncul saat tombol aktif/diklik */
-        .secure-btn:active::after {
-            left: 100%;
         }
 
         .btn-text { font-weight: 700; font-size: 1.1rem; }
@@ -121,34 +107,34 @@
             color: var(--accent-blue);
         }
 
-        .admin-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 24px;
-            border: 1px solid #fff;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        /* STYLE MODAL PROFESIONAL */
+        .modal-content { border-radius: 24px; border: none; }
+        .warning-box {
+            background: #fff1f2; border-radius: 16px; padding: 18px; border: 1px solid #fecdd3;
         }
-
-        .form-control {
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
+        .agreement-section {
+            background: #f1f5f9; border-radius: 12px; padding: 15px; margin-top: 15px;
         }
+        .agreement-section:has(input:checked) {
+            background: #ecfdf5; border: 1px solid #10b981;
+        }
+        #confirm-go:disabled { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
+        .timer-badge { background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 6px; }
     </style>
 </head>
 <body>
 
     <div class="main-wrapper">
+        <!-- ADMIN VIEW -->
         <div id="admin-view" style="display: none;">
-            <div class="admin-card">
+            <div class="bg-white p-4 rounded-4 shadow-sm">
                 <h4 class="fw-bold mb-4 text-center">Link Builder</h4>
                 <div class="mb-3">
                     <label class="small fw-bold text-muted">JUDUL HALAMAN</label>
                     <input type="text" id="page-title" class="form-control" placeholder="Contoh: Mediafire Premium">
                 </div>
                 <div id="link-inputs"></div>
-                <button class="btn btn-outline-primary w-100 border-dashed mt-2 mb-4" onclick="addLinkRow()">+ Tambah Link</button>
+                <button class="btn btn-outline-primary w-100 mt-2 mb-4" onclick="addLinkRow()">+ Tambah Link</button>
                 <button class="btn btn-primary w-100 py-3 fw-bold" onclick="generateUrl()">GENERATE & ENCRYPT</button>
             </div>
             
@@ -161,23 +147,65 @@
             </div>
         </div>
 
+        <!-- USER VIEW -->
         <div id="user-view" style="display: none;">
             <div class="text-center mb-5">
                 <h1 id="display-title" class="page-title">...</h1>
-                <p class="text-muted small fw-medium">Dosa ditanggung sendiri</p>
+                <p class="text-muted small fw-medium">Pikirkan sebelum melangkah</p>
             </div>
             <div id="link-list" class="link-grid"></div>
         </div>
     </div>
 
+    <!-- MODAL PERINGATAN (VERSI TERBARU) -->
+    <div class="modal fade" id="warningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered px-3">
+            <div class="modal-content shadow-lg">
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="text-danger mb-2"><i class="bi bi-shield-lock-fill" style="font-size: 3rem;"></i></div>
+                        <h4 class="fw-800">Pernyataan Tanggung Jawab</h4>
+                    </div>
+
+                    <div class="warning-box mb-3">
+                        <p class="small mb-1 fw-bold text-danger">KONSEKUENSI PRIBADI:</p>
+                        <p class="small text-dark mb-0">Segala konten yang diakses melalui link ini adalah pilihan sadar saya dan saya bersedia memikul dosa secara mandiri.</p>
+                    </div>
+
+                    <div class="warning-box mb-3" style="background: #fefce8; border-color: #fef08a;">
+                        <p class="small mb-1 fw-bold text-warning-emphasis">PERINGATAN PENYEBARAN:</p>
+                        <p class="small text-dark mb-0">Jika saya menyebarkan link ini, saya sadar akan memikul <b>Dosa Jariyah</b> dari setiap orang yang mengaksesnya.</p>
+                    </div>
+
+                    <div class="agreement-section">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="checkAgree" onchange="validateForm()">
+                            <label class="form-check-label small fw-semibold text-dark" for="checkAgree">
+                                Saya setuju, sadar, dan siap bertanggung jawab penuh atas segala konsekuensi.
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-grid gap-2">
+                        <button id="confirm-go" class="btn btn-danger py-3 fw-bold" disabled>
+                            MOHON TUNGGU (<span id="timer-count">3</span>)
+                        </button>
+                        <button class="btn btn-link text-muted fw-semibold text-decoration-none" data-bs-dismiss="modal">Batalkan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const ADS = [
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
-            "https://omg10.com/4/10608604"
-        ];
+        const ADS = ["https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", "https://omg10.com/4/10608604"];
         const SECRET_KEY = "kunci-rahasia-iq-tinggi";
         const MEMORY_KEY = "sg_data_store";
-        const EXPIRY_TIME = 60 * 60 * 1000;
+        
+        let currentTargetUrl = "";
+        let timeLeft = 3;
+        let timerInterval = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             const params = new URLSearchParams(window.location.search);
@@ -190,27 +218,54 @@
                     localStorage.setItem(MEMORY_KEY, JSON.stringify({ payload: parsed, ts: Date.now() }));
                     window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
                     renderUserView(parsed);
-                } catch (e) { alert("Key Salah!"); }
+                } catch (e) { console.error("Data error"); }
             } else {
                 const cached = getFromMemory();
-                if (cached) {
-                    renderUserView(cached);
-                } else {
+                if (cached) renderUserView(cached);
+                else {
                     document.getElementById('admin-view').style.display = 'block';
                     addLinkRow();
                 }
             }
         });
 
-        function getFromMemory() {
-            const raw = localStorage.getItem(MEMORY_KEY);
-            if (!raw) return null;
-            const obj = JSON.parse(raw);
-            if (Date.now() - obj.ts > EXPIRY_TIME) {
-                localStorage.removeItem(MEMORY_KEY);
-                return null;
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = 3;
+            const btn = document.getElementById('confirm-go');
+            const display = document.getElementById('timer-count');
+            const check = document.getElementById('checkAgree');
+            
+            check.checked = false; 
+            btn.disabled = true;
+            btn.classList.replace('btn-success', 'btn-danger');
+            btn.innerText = `MOHON TUNGGU (${timeLeft})`;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                display.innerText = timeLeft;
+                btn.innerText = `MOHON TUNGGU (${timeLeft})`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    validateForm();
+                }
+            }, 1000);
+        }
+
+        function validateForm() {
+            const btn = document.getElementById('confirm-go');
+            const check = document.getElementById('checkAgree');
+            if (timeLeft <= 0 && check.checked) {
+                btn.disabled = false;
+                btn.innerText = "SAYA BERTANGGUNG JAWAB & LANJUT";
+                btn.classList.replace('btn-danger', 'btn-success');
+            } else {
+                btn.disabled = true;
+                btn.innerText = timeLeft > 0 ? `MOHON TUNGGU (${timeLeft})` : "CENTANG PERSETUJUAN DI ATAS";
+                btn.classList.replace('btn-success', 'btn-danger');
             }
-            return obj.payload;
         }
 
         function renderUserView(data) {
@@ -221,31 +276,37 @@
             data.links.forEach((item) => {
                 const btn = document.createElement('div');
                 btn.className = 'secure-btn';
-                btn.innerHTML = `
-                    <span class="btn-text">${item.t}</span>
-                    <div class="btn-icon-box"><i class="bi bi-chevron-right"></i></div>
-                `;
-                
-                // DISINI PERBAIKANNYA (Pake Jeda)
+                btn.innerHTML = `<span class="btn-text">${item.t}</span><div class="btn-icon-box"><i class="bi bi-chevron-right"></i></div>`;
                 btn.onclick = () => {
-                    let idx = parseInt(localStorage.getItem('ad_seq') || "0");
-                    const targetAd = ADS[idx];
-                    localStorage.setItem('ad_seq', (idx + 1) % ADS.length);
-
-                    // Kasih jeda 300ms supaya animasi klik kelihatan dulu
-                    setTimeout(() => {
-                        window.open(item.u, '_blank');
-                        window.location.href = targetAd;
-                    }, 300);
+                    currentTargetUrl = item.u;
+                    const myModal = new bootstrap.Modal(document.getElementById('warningModal'));
+                    myModal.show();
+                    startTimer();
                 };
                 container.appendChild(btn);
             });
         }
 
+        document.getElementById('confirm-go').onclick = function() {
+            let idx = parseInt(localStorage.getItem('ad_seq') || "0");
+            const targetAd = ADS[idx];
+            localStorage.setItem('ad_seq', (idx + 1) % ADS.length);
+            window.open(currentTargetUrl, '_blank');
+            window.location.href = targetAd;
+        };
+
+        function getFromMemory() {
+            const raw = localStorage.getItem(MEMORY_KEY);
+            if (!raw) return null;
+            const obj = JSON.parse(raw);
+            if (Date.now() - obj.ts > 3600000) return null;
+            return obj.payload;
+        }
+
         function addLinkRow() {
             const d = document.createElement('div');
             d.className = 'd-flex gap-2 mb-2';
-            d.innerHTML = `<input type="text" class="form-control t-in" placeholder="Nama Link"><input type="text" class="form-control u-in" placeholder="URL"><button class="btn btn-light border" onclick="this.parentElement.remove()">X</button>`;
+            d.innerHTML = `<input type="text" class="form-control t-in" placeholder="Nama"><input type="text" class="form-control u-in" placeholder="URL"><button class="btn btn-light border" onclick="this.parentElement.remove()">X</button>`;
             document.getElementById('link-inputs').appendChild(d);
         }
 
@@ -258,8 +319,7 @@
                 const u = r.querySelector('.u-in').value;
                 if(t && u) links.push({t, u});
             });
-            if(!title || links.length === 0) return alert("Isi data dulu!");
-
+            if(!title || links.length === 0) return alert("Isi data!");
             const enc = CryptoJS.AES.encrypt(JSON.stringify({title, links}), SECRET_KEY).toString();
             document.getElementById('final-url').value = window.location.origin + window.location.pathname + "?data=" + encodeURIComponent(enc);
             document.getElementById('result-area').style.display = 'block';
@@ -267,7 +327,7 @@
 
         function copyUrl() {
             const el = document.getElementById('final-url'); el.select();
-            document.execCommand('copy'); alert('Link disalin!');
+            document.execCommand('copy'); alert('Tersalin!');
         }
     </script>
 </body>
