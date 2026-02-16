@@ -229,42 +229,50 @@
             }
         });
 
+        // LOGIKA BARU AGAR TIMER TIDAK BERHENTI SAAT KLIK CENTANG
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
-            timeLeft = 3;
-            const btn = document.getElementById('confirm-go');
-            const display = document.getElementById('timer-count');
-            const check = document.getElementById('checkAgree');
             
+            timeLeft = 3;
+            const check = document.getElementById('checkAgree');
             check.checked = false; 
-            btn.disabled = true;
-            btn.classList.replace('btn-success', 'btn-danger');
-            btn.innerText = `MOHON TUNGGU (${timeLeft})`;
+            
+            updateButtonUI(); // Set tampilan awal
 
             timerInterval = setInterval(() => {
                 timeLeft--;
-                display.innerText = timeLeft;
-                btn.innerText = `MOHON TUNGGU (${timeLeft})`;
-
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     timerInterval = null;
-                    validateForm();
                 }
+                updateButtonUI();
             }, 1000);
         }
 
         function validateForm() {
+            updateButtonUI();
+        }
+
+        function updateButtonUI() {
             const btn = document.getElementById('confirm-go');
             const check = document.getElementById('checkAgree');
-            if (timeLeft <= 0 && check.checked) {
-                btn.disabled = false;
-                btn.innerText = "SAYA BERTANGGUNG JAWAB & LANJUT";
-                btn.classList.replace('btn-danger', 'btn-success');
-            } else {
+
+            if (timeLeft > 0) {
+                // Selama waktu masih berjalan
                 btn.disabled = true;
-                btn.innerText = timeLeft > 0 ? `MOHON TUNGGU (${timeLeft})` : "CENTANG PERSETUJUAN DI ATAS";
+                btn.innerHTML = `MOHON TUNGGU (<span id="timer-count">${timeLeft}</span>)`;
                 btn.classList.replace('btn-success', 'btn-danger');
+            } else {
+                // Waktu sudah habis
+                if (check.checked) {
+                    btn.disabled = false;
+                    btn.innerText = "SAYA BERTANGGUNG JAWAB & LANJUT";
+                    btn.classList.replace('btn-danger', 'btn-success');
+                } else {
+                    btn.disabled = true;
+                    btn.innerText = "CENTANG PERSETUJUAN DI ATAS";
+                    btn.classList.replace('btn-success', 'btn-danger');
+                }
             }
         }
 
